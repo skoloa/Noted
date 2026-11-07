@@ -15,20 +15,39 @@ A Roblox Studio plugin that finds TODO, FIX, HACK and NOTE comments across your 
 - Dark and light theme
 
 ## Writing notes
+
 ```lua
 -- N: why this design
 -- N(alex, 2026-11-07)!: fix before release
 ```
+
 `N` is short for NOTE. `T`, `F` and `H` work for TODO, FIX and HACK.
-Format: `TAG(assignee, YYYY-MM-DD)!!: text` (assignee, date and `!` priority are optional).
+
+Format: `TAG(assignee, YYYY-MM-DD)!!: text`
+Assignee, date and `!` priority are optional.
 
 ## Install
-1. Download `Noted.lua`.
-2. In Roblox Studio, create a new Script, paste the code and right-click it → **Save as Local Plugin**.
-3. Click **Noted** in the **Luau Dev Tools** toolbar.
+
+Pick one of the two options.
+
+### Option 1: Plugin file (`Noted.rbxmx`)
+1. Download `Noted.rbxmx`.
+2. In Roblox Studio, open the **Plugins** tab and click **Plugins Folder**.
+3. Put `Noted.rbxmx` into that folder.
+4. Restart Studio.
+5. Click **Noted** in the **Luau Dev Tools** toolbar.
+
+### Option 2: Source code (`Noted.luau`)
+1. Download `Noted.luau` and copy its contents.
+2. In Roblox Studio, insert a new **Script** and paste the code.
+3. Right-click the script and choose **Save as Local Plugin**.
+4. Click **Noted** in the **Luau Dev Tools** toolbar.
 
 ## Feedback
-Found a bug or have an idea? Open an issue: https://github.com/skoloa/Noted/issues
+
+Found a bug or have an idea? Open an issue:
+https://github.com/skoloa/Noted/issues
 
 ## License
-MIT
+
+MIT. See [LICENSE](LICENSE).
