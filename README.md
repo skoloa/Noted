@@ -55,4 +55,4 @@ https://github.com/skoloa/Noted/issues
 
 ## License
 
-MIT. See [LICENSE](LICENSE).
+GPL. See [LICENSE](LICENSE).
