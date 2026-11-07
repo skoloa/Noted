@@ -28,16 +28,21 @@ Assignee, date and `!` priority are optional.
 
 ## Install
 
-Pick one of the two options.
+Pick one of the three options.
 
-### Option 1: Plugin file (`Noted.rbxmx`)
+### Option 1: Creator Store (easiest)
+1. Open the plugin page: https://create.roblox.com/store/asset/131784033043435
+2. Click **Get** / **Install**.
+3. Restart Studio, then click **Noted** in the **Luau Dev Tools** toolbar.
+
+### Option 2: Plugin file (`Noted.rbxmx`)
 1. Download `Noted.rbxmx`.
 2. In Roblox Studio, open the **Plugins** tab and click **Plugins Folder**.
 3. Put `Noted.rbxmx` into that folder.
 4. Restart Studio.
 5. Click **Noted** in the **Luau Dev Tools** toolbar.
 
-### Option 2: Source code (`Noted.luau`)
+### Option 3: Source code (`Noted.luau`)
 1. Download `Noted.luau` and copy its contents.
 2. In Roblox Studio, insert a new **Script** and paste the code.
 3. Right-click the script and choose **Save as Local Plugin**.
