@@ -55,4 +55,4 @@ https://github.com/skoloa/Noted/issues
 
 ## License
 
-GNU. See [LICENSE](LICENSE).
+GNU GPL v3. See [LICENSE](LICENSE).
