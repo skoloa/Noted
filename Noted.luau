@@ -1,17 +1,8 @@
--- ============================================================
---  Noted | Roblox Studio plugin (Beta)
---  Finds TODO / FIX / HACK / NOTE comments across your project
--- ============================================================
-
 local HttpService = game:GetService("HttpService")
 local ServerStorage = game:GetService("ServerStorage")
 local ScriptEditorService = game:GetService("ScriptEditorService")
 local TweenService = game:GetService("TweenService")
 local TextService = game:GetService("TextService")
-
--- ============================================================
---  Constants
--- ============================================================
 
 local SETTINGS_KEY = "TodoNotes_v3_Settings"
 local DONE_KEY = "TodoNotes_v3_Done"
@@ -104,21 +95,21 @@ local HELP_SECTIONS = {
 	{
 		title = "Format",
 		body = "N(assignee, YYYY-MM-DD)!!: text\n"
-			.. "•  N is short for NOTE. T, F and H work too.\n"
-			.. "•  Assignee and date are optional.\n"
-			.. "•  ! or !! marks priority.",
+			.. "â€¢  N is short for NOTE. T, F and H work too.\n"
+			.. "â€¢  Assignee and date are optional.\n"
+			.. "â€¢  ! or !! marks priority.",
 	},
 	{
 		title = "Panel",
-		body = "•  Click a card to open the script at that line.\n"
-			.. "•  Hover a card to preview the code around it.\n"
-			.. "•  Right-click for open, copy, done or ignore.\n"
-			.. "•  The square on a card marks it done.\n"
-			.. "•  Done and ignored notes stay hidden until Show done is on.\n"
-			.. "•  Search matches text, file name and @assignee.\n"
-			.. "•  Click a tag chip to show or hide that tag.\n"
-			.. "•  Scope limits notes to a group of services.\n"
-			.. "•  Sync re-reads every script in the place.",
+		body = "â€¢  Click a card to open the script at that line.\n"
+			.. "â€¢  Hover a card to preview the code around it.\n"
+			.. "â€¢  Right-click for open, copy, done or ignore.\n"
+			.. "â€¢  The square on a card marks it done.\n"
+			.. "â€¢  Done and ignored notes stay hidden until Show done is on.\n"
+			.. "â€¢  Search matches text, file name and @assignee.\n"
+			.. "â€¢  Click a tag chip to show or hide that tag.\n"
+			.. "â€¢  Scope limits notes to a group of services.\n"
+			.. "â€¢  Sync re-reads every script in the place.",
 	},
 	{
 		title = "Export",
@@ -129,10 +120,6 @@ local HELP_SECTIONS = {
 		body = "A new note whose tag has alerts turned on lights up the footer. Click the footer to jump to it.",
 	},
 }
-
--- ============================================================
---  Fonts
--- ============================================================
 
 local function ubuntu(weight)
 	local ok, font = pcall(Font.fromName, "Ubuntu", weight)
@@ -146,10 +133,6 @@ local FONT_REG = ubuntu(Enum.FontWeight.Regular)
 local FONT_MED = ubuntu(Enum.FontWeight.Medium)
 local FONT_BOLD = ubuntu(Enum.FontWeight.Bold)
 local FONT_CODE = Font.fromEnum(Enum.Font.Code)
-
--- ============================================================
---  Palette (dark / light, follows the Studio theme)
--- ============================================================
 
 local DARK = {
 	bg = Color3.fromRGB(14, 16, 22),
@@ -186,10 +169,6 @@ local function theme(obj, prop, key)
 	obj[prop] = P[key]
 	return obj
 end
-
--- ============================================================
---  State
--- ============================================================
 
 local cfg
 local doneSet, ignoredSet = {}, {}
@@ -230,10 +209,6 @@ local showToast, clearToast, notifyFresh, showPopup, closePopup, showCopy
 local buildChips, buildSettings, buildHelp, buildNews, buildWelcome, setOverlay, showPreview, openAt, fullScan
 local queueParse, flushPending, reparseAll, runExport, applyTheme
 local renameTagFromSettings, removeTagFromSettings
-
--- ============================================================
---  Helpers
--- ============================================================
 
 local function make(class, props)
 	local inst = Instance.new(class)
@@ -306,7 +281,6 @@ local function measure(text, size, font, width)
 	return size * 1.4
 end
 
--- Destroys every child except layout helpers and decorations (corner, stroke, scale)
 local function clearChildren(parent)
 	for _, c in ipairs(parent:GetChildren()) do
 		if not c:IsA("UILayout") and not c:IsA("UIPadding")
@@ -327,10 +301,6 @@ end
 local function setSetting(key, value)
 	pcall(plugin.SetSetting, plugin, key, value)
 end
-
--- ============================================================
---  Buttons
--- ============================================================
 
 local function styleButton(b, bg, fg)
 	b:SetAttribute("Rest", bg)
@@ -379,11 +349,9 @@ local function themedButton(parent, text, size, pos, bgKey, fgKey)
 	return b
 end
 
--- Segmented pill: one sliding highlight follows the hovered button
 APP.segs = {}
 APP.intro = {}
 APP.group = function(parent, size, pos, defs, delay)
-	-- centered anchor so the pop-in scales from the middle
 	local pill = theme(make("Frame", {
 		AnchorPoint = Vector2.new(0.5, 0.5),
 		Size = size,
@@ -413,7 +381,6 @@ APP.group = function(parent, size, pos, defs, delay)
 	})
 	local iscale = make("UIScale", { Parent = indicator })
 
-	-- two soft halo layers behind the highlight
 	local glowA = theme(make("Frame", {
 		Size = UDim2.new(), BackgroundTransparency = 1, BorderSizePixel = 0, ZIndex = 0, Parent = pill,
 	}), "BackgroundColor3", "accent")
@@ -498,7 +465,6 @@ APP.group = function(parent, size, pos, defs, delay)
 	return unpack(out)
 end
 
--- Replays the entrance animation: groups pop in, then the tag chips one by one
 APP.playIntro = function()
 	for _, it in ipairs(APP.intro) do
 		if it.pill.Parent then
@@ -550,10 +516,6 @@ APP.setSegKey = function(btn, key)
 	end
 end
 
--- ============================================================
---  Settings and sets (persistence)
--- ============================================================
-
 cfg = deepCopy(DEFAULT_CFG)
 for k, v in pairs(decode(getSetting(SETTINGS_KEY), {})) do
 	cfg[k] = v
@@ -590,10 +552,6 @@ end
 
 doneSet = loadSet(DONE_KEY)
 ignoredSet = loadSet(IGNORE_KEY)
-
--- ============================================================
---  Tag helpers
--- ============================================================
 
 local function isTag(tag)
 	for _, t in ipairs(cfg.tags) do
@@ -652,10 +610,6 @@ local function ageText(date)
 	return days .. "d old"
 end
 
--- ============================================================
---  Parsing
--- ============================================================
-
 local function parseTagText(text)
 	local tagRaw, rest = string.match(text, "^%s*(%a+)(.*)$")
 	if not tagRaw then
@@ -664,7 +618,6 @@ local function parseTagText(text)
 	local tag = string.upper(tagRaw)
 	local short = false
 	if not isTag(tag) then
-		-- one capital letter + colon is enough: N: -> NOTE, T: -> TODO ...
 		local full = nil
 		if #tagRaw == 1 and tagRaw == tag then
 			for _, t in ipairs(cfg.tags) do
@@ -690,7 +643,6 @@ local function parseTagText(text)
 		end
 	end
 	if not meta then
-		-- the short form always needs its colon
 		if short or not cfg.allowNoColon or tagRaw ~= tag then
 			return nil
 		end
@@ -788,10 +740,6 @@ local function parseSource(script, src)
 	return out
 end
 
--- ============================================================
---  Index: reading scripts
--- ============================================================
-
 local function readSource(script)
 	local ok, src = pcall(ScriptEditorService.GetEditorSource, ScriptEditorService, script)
 	if ok and type(src) == "string" and src ~= "" then
@@ -871,10 +819,6 @@ rebuildAll = function()
 	end)
 end
 
--- ============================================================
---  Scope
--- ============================================================
-
 local function setScopeName(name)
 	scopeName = name
 	scopeRoots = nil
@@ -903,10 +847,6 @@ local function inScope(script)
 	end
 	return false
 end
-
--- ============================================================
---  Live updates
--- ============================================================
 
 local function watch(script)
 	if watchers[script] then
@@ -970,10 +910,6 @@ flushPending = function()
 	refreshUI(false)
 end
 
--- ============================================================
---  Open in editor
--- ============================================================
-
 openAt = function(e)
 	local ok, err = pcall(function()
 		local doc = ScriptEditorService:OpenScriptDocumentAsync(e.script)
@@ -1011,10 +947,6 @@ notifyFresh = function(fresh)
 		openAt(first)
 	end)
 end
-
--- ============================================================
---  Full scan (with loading panel)
--- ============================================================
 
 fullScan = function()
 	if scanning then
@@ -1070,7 +1002,6 @@ fullScan = function()
 		warn("[Noted] scan failed: " .. tostring(err))
 	end
 
-	-- keep the loader on screen long enough to be seen
 	scanFrac = 1
 	while os.clock() - started < 1.1 do
 		task.wait()
@@ -1100,10 +1031,6 @@ game.DescendantRemoving:Connect(function(desc)
 	end
 end)
 
--- ============================================================
---  UI: root widget and header
--- ============================================================
-
 local toolbar = plugin:CreateToolbar("Luau Dev Tools")
 local toggleBtn = toolbar:CreateButton(
 	"Noted",
@@ -1125,7 +1052,6 @@ root = theme(make("Frame", {
 	Parent = widget,
 }), "BackgroundColor3", "bg")
 
--- Header: fixed-width button group on the right, title takes the rest
 local header = make("Frame", {
 	Size = UDim2.new(1, 0, 0, HEADER_H),
 	BackgroundTransparency = 1,
@@ -1151,7 +1077,6 @@ task.spawn(function()
 		logoBtn.Image = K.LOGO_FALLBACK_ID
 	end
 end)
--- The logo itself stays still; clicking it opens What's new with a reveal animation
 logoBtn.MouseButton1Click:Connect(function()
 	if currentOverlay == "news" then
 		setOverlay(nil)
@@ -1182,7 +1107,6 @@ theme(make("Frame", {
 	Parent = root,
 }), "BackgroundColor3", "border")
 
--- Search
 local searchFrame = theme(make("Frame", {
 	Size = UDim2.new(1, -16, 0, 32),
 	Position = UDim2.fromOffset(8, K.SEARCH_Y),
@@ -1237,7 +1161,6 @@ clearBtn.MouseButton1Click:Connect(function()
 	searchBox.Text = ""
 end)
 
--- Tag chips
 chipScroll = make("ScrollingFrame", {
 	Size = UDim2.new(1, -16, 0, 26),
 	Position = UDim2.fromOffset(8, K.CHIPS_Y),
@@ -1287,7 +1210,6 @@ buildChips = function()
 	refreshControls()
 end
 
--- Controls row: three equal buttons with explicit positions, 6px gaps, never overlapping
 local function third(col)
 	return UDim2.new(1 / 3, -6, 1, -6), UDim2.new((col - 1) / 3, 3, 0, 3)
 end
@@ -1302,7 +1224,6 @@ do
 	}, 0.1)
 end
 
--- Card list
 list = theme(make("ScrollingFrame", {
 	Position = UDim2.fromOffset(8, LIST_Y),
 	Size = UDim2.new(1, -16, 1, -(LIST_Y + FOOTER_H + 6)),
@@ -1316,7 +1237,6 @@ list = theme(make("ScrollingFrame", {
 make("UIListLayout", { Padding = UDim.new(0, 6), SortOrder = Enum.SortOrder.LayoutOrder, Parent = list })
 make("UIPadding", { PaddingTop = UDim.new(0, 2), PaddingBottom = UDim.new(0, 4), Parent = list })
 
--- Preview panel
 previewFrame = theme(make("Frame", {
 	Size = UDim2.new(1, -16, 0, PREVIEW_H),
 	Position = UDim2.new(0, 8, 1, -(FOOTER_H + 6 + PREVIEW_H)),
@@ -1355,7 +1275,6 @@ previewClose.MouseButton1Click:Connect(function()
 	refreshControls()
 end)
 
--- Footer
 footer = theme(make("TextButton", {
 	Size = UDim2.new(1, 0, 0, FOOTER_H),
 	Position = UDim2.new(0, 0, 1, -FOOTER_H),
@@ -1370,7 +1289,6 @@ theme(make("Frame", {
 	Parent = footer,
 }), "BackgroundColor3", "border")
 
--- Thin progress bar along the top edge of the footer (visible while scanning)
 progressBar = theme(make("Frame", {
 	Size = UDim2.new(0, 0, 0, 2),
 	BorderSizePixel = 0,
@@ -1450,7 +1368,6 @@ footer.MouseButton1Click:Connect(function()
 	end
 end)
 
--- Popup menu
 popupCatcher = make("TextButton", {
 	Size = UDim2.fromScale(1, 1),
 	BackgroundTransparency = 1,
@@ -1538,7 +1455,6 @@ local function menuBelow(btn)
 		btn.AbsolutePosition.Y - root.AbsolutePosition.Y + btn.AbsoluteSize.Y + 4
 end
 
--- Copy modal (plugins cannot write the clipboard, so the text is selected for Ctrl+C)
 copyModal = theme(make("Frame", {
 	Size = UDim2.new(1, -24, 0, 176),
 	Position = UDim2.new(0, 12, 0.5, -88),
@@ -1613,13 +1529,6 @@ copyClose.MouseButton1Click:Connect(function()
 	copyModal.Visible = false
 end)
 
--- ============================================================
---  Overlays (Help and Settings)
---  The main UI is hidden while an overlay is open, so nothing
---  can ever draw on top of the overlay. Content is rebuilt on
---  each open; if building fails, the error shows in the panel.
--- ============================================================
-
 local function makeOverlay(titleText)
 	local frame = theme(make("Frame", {
 		Size = UDim2.fromScale(1, 1),
@@ -1635,7 +1544,6 @@ local function makeOverlay(titleText)
 		BackgroundTransparency = 1,
 		Parent = frame,
 	})
-	-- Back button on the LEFT, title next to it
 	local back = themedButton(top, "< Back", UDim2.fromOffset(64, 26), UDim2.new(0, 10, 0.5, -13), "accent", "white")
 	local title = theme(make("TextLabel", {
 		Size = UDim2.new(1, -96, 1, 0),
@@ -1803,7 +1711,6 @@ buildSettings = function()
 		return r
 	end
 
-	-- Switch-style toggle
 	local function toggleRow(label, value, onChange)
 		local r = row(42)
 		theme(make("TextLabel", {
@@ -2122,7 +2029,7 @@ buildNews = function()
 		theme(make("TextLabel", {
 			Size = UDim2.new(1, 0, 0, 20),
 			BackgroundTransparency = 1,
-			Text = string.format("v%s  ·  %s  ·  %s", rel.version, rel.channel, rel.date),
+			Text = string.format("v%s  Â·  %s  Â·  %s", rel.version, rel.channel, rel.date),
 			FontFace = FONT_BOLD,
 			TextSize = 13,
 			TextXAlignment = Enum.TextXAlignment.Left,
@@ -2132,7 +2039,7 @@ buildNews = function()
 
 		local lines = {}
 		for _, item in ipairs(rel.items) do
-			table.insert(lines, "•  " .. item)
+			table.insert(lines, "â€¢  " .. item)
 		end
 		local text = table.concat(lines, "\n")
 		local h = measure(text, 13, Enum.Font.Gotham, width)
@@ -2155,7 +2062,6 @@ buildWelcome = function()
 	local body = welcomeOverlay.body
 	clearChildren(body)
 
-	-- Text labels grow with their content, so nothing gets cut off
 	local function para(parent, order, text, colorKey, font, size)
 		theme(make("TextLabel", {
 			Size = UDim2.new(1, 0, 0, 0),
@@ -2172,7 +2078,6 @@ buildWelcome = function()
 		}), "TextColor3", colorKey or "text")
 	end
 
-	-- Frosted card: translucent, soft rounded corners, lifts on hover, pops in on open
 	local function glassCard(order)
 		local card = theme(make("Frame", {
 			Size = UDim2.new(1, -6, 0, 0),
@@ -2212,7 +2117,7 @@ buildWelcome = function()
 	local hero = glassCard(1)
 	para(hero, 1, "Noted", "text", FONT_BOLD, 24)
 	para(hero, 2, "Collect every TODO, FIX, HACK and NOTE comment in your project in one panel, search them, and jump straight to the code.", "subtext")
-	para(hero, 3, "In development  ·  v" .. APP.version, "accent", FONT_MED, 12)
+	para(hero, 3, "In development  Â·  v" .. APP.version, "accent", FONT_MED, 12)
 
 	local oss = glassCard(2)
 	para(oss, 1, "OPEN SOURCE", "accent", FONT_BOLD, 11)
@@ -2222,7 +2127,6 @@ buildWelcome = function()
 	para(steps, 1, "HOW TO START", "accent", FONT_BOLD, 11)
 	para(steps, 2, "1.  Write  -- N: description  in any script.\n2.  Click a card to open the script at that line.\n3.  Right-click a card to mark it done or ignore it.", "subtext")
 
-	-- Sliding pill switch (Start / What's new)
 	local seg = theme(make("Frame", {
 		Size = UDim2.new(1, -6, 0, 42),
 		BorderSizePixel = 0,
@@ -2308,7 +2212,6 @@ buildWelcome = function()
 	end)
 end
 
--- Runs a builder; on failure, shows the error inside the panel
 local function safeBuild(builder, overlay)
 	clearChildren(overlay.body)
 	local ok, err = pcall(builder)
@@ -2329,7 +2232,6 @@ local function safeBuild(builder, overlay)
 	end
 end
 
--- Shows or hides every main-UI element so an overlay is never covered
 local function setMainVisible(v)
 	for _, c in ipairs(root:GetChildren()) do
 		if c:IsA("GuiObject")
@@ -2346,7 +2248,6 @@ local function setMainVisible(v)
 	APP.updateLoader()
 end
 
--- Cards of an overlay spring in one after another
 APP.springIn = function(body)
 	local i = 0
 	for _, c in ipairs(body:GetChildren()) do
@@ -2415,10 +2316,6 @@ welcomeOverlay.back.MouseButton1Click:Connect(function()
 	setOverlay(nil)
 end)
 
--- ============================================================
---  Notes: filtering, cards, rendering
--- ============================================================
-
 local function isMuted(e)
 	return doneSet[e.key] == true or ignoredSet[e.key] == true
 end
@@ -2439,7 +2336,6 @@ local function passesBase(e)
 	return true
 end
 
--- Cards spring in and float up with a soft fade
 local function fadeIn(card, delay)
 	local sc = card:FindFirstChildOfClass("UIScale")
 	if sc then
@@ -2550,10 +2446,6 @@ showPreview = function(e)
 	end
 end
 
--- Card layout (CARD_H = 66):
---   row 1 (y=10): tag pill + "file : line"            | check box on the far right
---   row 2 (y=30): note text
---   row 3 (y=48): assignee / date / status           | priority badge on the far right
 local function buildCard(e, order)
 	local color = tagColor(e.tag)
 	local done = doneSet[e.key] == true
@@ -2650,7 +2542,7 @@ local function buildCard(e, order)
 		Size = UDim2.new(1, -(14 + metaRight), 0, 14),
 		Position = UDim2.fromOffset(14, 48),
 		BackgroundTransparency = 1,
-		Text = table.concat(meta, "  ·  "),
+		Text = table.concat(meta, "  Â·  "),
 		FontFace = FONT_REG,
 		TextSize = 11,
 		TextColor3 = P.subtext,
@@ -2679,7 +2571,7 @@ local function buildCard(e, order)
 		BackgroundColor3 = done and color or P.bg,
 		BorderSizePixel = 0,
 		AutoButtonColor = false,
-		Text = done and "?" or "",
+		Text = done and "âœ“" or "",
 		FontFace = FONT_BOLD,
 		TextSize = 12,
 		TextColor3 = P.white,
@@ -2810,7 +2702,7 @@ render = function(animate)
 	for _ in pairs(files) do
 		fileCount += 1
 	end
-	footerStats = string.format("%d shown  ·  %d open  ·  %d files", #shown, open, fileCount)
+	footerStats = string.format("%d shown  Â·  %d open  Â·  %d files", #shown, open, fileCount)
 	refreshFooter()
 	widget.Title = string.format("Noted  (%d open)", open)
 	refreshControls()
@@ -2837,10 +2729,6 @@ refreshControls = function()
 	APP.setSegKey(doneBtn, showDone and "accent" or "text")
 	styleButton(previewToggle, cfg.preview and P.accent or P.surface2, cfg.preview and P.white or P.text)
 end
-
--- ============================================================
---  Export
--- ============================================================
 
 local function buildMarkdown(items)
 	local out = { "# Noted", "" }
@@ -2935,10 +2823,6 @@ local function exportMenu(btn)
 	})
 end
 
--- ============================================================
---  Theme
--- ============================================================
-
 applyTheme = function()
 	local ok, studioTheme = pcall(function()
 		return settings().Studio.Theme
@@ -2986,10 +2870,6 @@ applyTheme = function()
 	end
 end
 
--- ============================================================
---  Wiring
--- ============================================================
-
 APP.resetNewsFrame = function()
 	local f = newsOverlay.frame
 	for _, n in ipairs({ "RevealScale", "RevealCorner", "RevealStroke" }) do
@@ -3014,7 +2894,6 @@ APP.openNewsFromLogo = function(logo)
 	APP.revealToken += 1
 	local token = APP.revealToken
 
-	-- keep the main UI visible underneath while the panel grows out of the logo
 	setMainVisible(true)
 
 	local cx = logo.AbsolutePosition.X - root.AbsolutePosition.X + logo.AbsoluteSize.X / 2
@@ -3029,7 +2908,6 @@ APP.openNewsFromLogo = function(logo)
 	tween(cr, { CornerRadius = UDim.new(0, 0) }, 0.65, Enum.EasingStyle.Quint)
 	tween(st, { Transparency = 1 }, 0.8)
 
-	-- cards spring in one after another
 	local i = 0
 	for _, card in ipairs(newsOverlay.body:GetChildren()) do
 		if card:IsA("Frame") then
@@ -3062,7 +2940,7 @@ APP.announce = function()
 	end
 	setSetting(APP.seenKey, APP.version)
 	showToast(
-		string.format("Noted %s %s  ·  click to see what's new", APP.version, APP.channel),
+		string.format("Noted %s %s  Â·  click to see what's new", APP.version, APP.channel),
 		P.accent,
 		function()
 			setOverlay("news")
@@ -3097,7 +2975,7 @@ scopeBtn.MouseButton1Click:Connect(function()
 	local items = {}
 	for _, s in ipairs(SCOPES) do
 		table.insert(items, {
-			label = (s.name == scopeName and "?  " or "    ") .. s.name,
+			label = (s.name == scopeName and "â—  " or "    ") .. s.name,
 			fn = function()
 				setScopeName(s.name)
 				pageLimit = PAGE_SIZE
@@ -3149,10 +3027,6 @@ pcall(function()
 	settings().Studio.ThemeChanged:Connect(applyTheme)
 end)
 
--- ============================================================
---  Loader panel
--- ============================================================
-
 APP.buildLoader = function()
 	local L = { disp = 0, t = 0, on = false, bars = {} }
 	APP.loader = L
@@ -3168,7 +3042,6 @@ APP.buildLoader = function()
 		Parent = root,
 	}), "BackgroundColor3", "bg")
 
-	-- status card
 	local card = theme(make("Frame", {
 		Position = UDim2.fromOffset(8, 2),
 		Size = UDim2.new(1, -16, 0, 66),
@@ -3178,7 +3051,6 @@ APP.buildLoader = function()
 	corner(card, 10)
 	theme(make("UIStroke", { Thickness = 1, Transparency = 0.4, Parent = card }), "Color", "border")
 
-	-- spinner: faint track + rotating gradient arc
 	local spin = make("Frame", {
 		Size = UDim2.fromOffset(34, 34),
 		Position = UDim2.fromOffset(14, 11),
@@ -3247,7 +3119,6 @@ APP.buildLoader = function()
 	}), "BackgroundColor3", "accent")
 	corner(L.fill, 2)
 
-	-- shimmering skeleton cards
 	for i = 1, 6 do
 		local sc = theme(make("Frame", {
 			Position = UDim2.fromOffset(8, 76 + (i - 1) * 72),
@@ -3281,7 +3152,6 @@ APP.loaderStart = function()
 	end
 	L.conn = K.Run.Heartbeat:Connect(function(dt)
 		L.t += dt
-		-- spinner sweeps faster in the middle of each turn
 		L.grad.Rotation = (L.t * 300 + math.sin(L.t * 3) * 40) % 360
 		L.disp += (scanFrac - L.disp) * math.min(1, dt * 9)
 		L.fill.Size = UDim2.fromScale(math.clamp(L.disp, 0, 1), 1)
@@ -3289,7 +3159,7 @@ APP.loaderStart = function()
 		L.title.Text = scanFrac >= 1 and "Finishing up" or "Scanning scripts"
 		local s = APP.scan
 		if s then
-			L.sub.Text = string.format("%d / %d scripts  ·  %d notes found", s.seen, s.total, s.found)
+			L.sub.Text = string.format("%d / %d scripts  Â·  %d notes found", s.seen, s.total, s.found)
 		end
 		for _, b in ipairs(L.bars) do
 			local a = 0.5 + 0.5 * math.sin(L.t * 3.2 - b.phase)
@@ -3326,15 +3196,10 @@ end
 
 APP.buildLoader()
 
--- ============================================================
---  Initial setup
--- ============================================================
-
 buildChips()
 applyTheme()
 layout()
 
--- If Studio restored the panel already open, the Enabled signal never fires
 task.defer(function()
 	if widget.Enabled then
 		layout()
